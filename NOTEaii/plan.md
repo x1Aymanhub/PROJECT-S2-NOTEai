@@ -59,7 +59,7 @@ NOTEai/
 ### 1. Interface Utilisateur
 - **index.html**: Page d'accueil avec login
 - **register.html**: Inscription des nouveaux utilisateurs
-- **dashboard.php**: Interface principale après connexion
+
 
 ### 2. Administration (/admin)
 - Gestion des utilisateurs
