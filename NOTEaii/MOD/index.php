@@ -82,7 +82,7 @@ try {
                                     Coefficient: <?= htmlspecialchars($module['coefficient']) ?>
                                 </p>
                                 <a href="description.php?module_id=<?= $module['id'] ?>" class="btn btn-primary">
-                                    <i class="fas fa-info-circle"></i> Voir les descriptions
+                                    <i class="fas fa-info-circle"></i> Ajouter modules
                                 </a>
                             </div>
                         </div>
