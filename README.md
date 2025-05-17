@@ -10,6 +10,8 @@ NOTEai est une plateforme intelligente dédiée à la gestion des notes, des mod
 - Interface utilisateur intuitive
 - Système de gestion des coefficients
 - Organisation par semestre
+- Analyse intelligente des notes avec IA
+- Suggestions personnalisées d'apprentissage
 
 ## Structure du Projet
 ```
@@ -17,6 +19,13 @@ NOTEai/
 ├── admin/              # Administration du système
 │   ├── dashboard.php   # Tableau de bord administrateur
 │   └── users.php       # Gestion des utilisateurs
+│
+├── ai/                # Module d'Intelligence Artificielle
+│   ├── ai.php        # Logique principale de l'IA
+│   ├── ai.js         # Interface utilisateur IA
+│   ├── ai.css        # Styles spécifiques à l'IA
+│   ├── config.js     # Configuration de l'IA
+│   └── README.md     # Documentation spécifique à l'IA
 │
 ├── assets/            # Ressources statiques
 │   ├── css/          # Styles CSS
@@ -52,7 +61,10 @@ NOTEai/
 - **Base de données**: MySQL 8.0
 - **API**: RESTful Architecture
 - **Sécurité**: JWT, HTTPS
-- **IA**: Algorithmes de personnalisation
+- **IA**: 
+  - OpenRouter AI API
+  - Algorithmes de personnalisation
+  - Analyse prédictive des notes
 
 ## Configuration Requise
 1. Serveur Web Apache/Nginx
@@ -63,13 +75,15 @@ NOTEai/
    - MySQLi
    - JSON
    - Session
+5. Clé API OpenRouter AI
 
 ## Installation
 1. Clonez ce dépôt
 2. Configurez votre serveur web
 3. Importez la base de données depuis le dossier `sql/`
 4. Configurez les paramètres de connexion dans `config/database.php`
-5. Lancez l'application dans votre navigateur
+5. Configurez votre clé API OpenRouter dans `ai/config.js`
+6. Lancez l'application dans votre navigateur
 
 ## Contribution
 1. Forkez ce dépôt
