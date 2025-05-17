@@ -3,12 +3,7 @@
 ## Description
 NOTEai est une application web permettant de prendre, organiser et rechercher des notes efficacement grâce à l'intelligence artificielle.
 
-## Installation
-1. Clonez ce dépôt :  
-   `git clone https://github.com/votre-utilisateur/NOTEai.git`
-2. Placez le dossier dans `c:\xampp\htdocs\`.
-3. Assurez-vous que XAMPP (Apache et MySQL) est lancé.
-4. Accédez à `http://localhost/888/NOTEai` dans votre navigateur.
+
 
 ## Usage
 - Ouvrez l'application dans votre navigateur.
@@ -106,8 +101,6 @@ NOTEai/
    - JSON
    - Session
    ## THE END 
-
-   ai : 
 
    api key : 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
 
