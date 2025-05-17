@@ -1,0 +1,8 @@
+Array
+(
+    [nom] => houssam
+    [prenom] => bouamraoui
+    [email] => houssambou@gmail.com
+    [password] => houssam@@
+    [confirm_password] => houssam@@
+)

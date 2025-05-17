@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOTEai - Inscription</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    <div id="message" class="message hidden">
+        <i class='bx bx-x close-message'></i>
+        <span class="message-content"></span>
+    </div>
+
+    <header>
+        <a href="index.html" class="logo">NOTEai</a>
+        <nav class="nav">
+            <a href="index.html">Home</a>
+            <a href="#about">About</a>
+            <a href="#reviews">Reviews</a>
+            <a href="#contact">Contact</a>
+        </nav>
+    </header>
+
+    <section class="register">
+        <div class="wrapper-register">
+            <h2>INSCRIPTION</h2>
+            <form id="register-form" action="php/register.php" method="POST">
+                <div class="input-box">
+                    <i class='bx bxs-user icon'></i>
+                    <input type="text" id="nom" name="nom" required>
+                    <label>Nom</label>
+                </div>
+                <div class="input-box">
+                    <i class='bx bxs-user icon'></i>
+                    <input type="text" id="prenom" name="prenom" required>
+                    <label>Prénom</label>
+                </div>
+                
+                <div class="input-box">
+                    <i class='bx bxs-envelope icon'></i>
+                    <input type="email" id="email" name="email" required>
+                    <label>Email</label>
+                </div>
+                <div class="input-box">
+                    <i class='bx bxs-lock-alt icon'></i>
+                    <input type="password" id="password" name="password" required>
+                    <label>Mot de passe</label>
+                </div>
+                <div class="input-box">
+                    <i class='bx bxs-lock-alt icon'></i>
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                    <label>Confirmer le mot de passe</label>
+                </div>
+                <button type="submit" class="btn" id="submit-btn">S'inscrire</button>
+                <div class="login-link">
+                    <p>Déjà inscrit ? <a href="index.html">Se connecter</a></p>
+                </div>
+            </form>
+        </div>
+    </section>
+
+     <script src="assets/js/script.js"></script>
+   
+    
+</body>
+</html>

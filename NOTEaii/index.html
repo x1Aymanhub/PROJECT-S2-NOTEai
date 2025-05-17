@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOTEai - Plateforme d'apprentissage</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    <div class="message success hidden">
+        <span class="message-text">Opération réussie!</span>
+        <button class="close-message">&times;</button>
+    </div>
+    <div id="message" class="message hidden">
+        <i class='bx bx-x close-message'></i>
+        <span class="message-content"></span>
+    </div>
+    <header>
+        <a href="#" class="logo">NOTEai</a>
+        <nav class="nav">
+            <a href="#home" class="active">Home</a>
+            <a href="#about">About</a>
+            <a href="#reviews">Reviews</a>
+            <a href="#contact">Contact</a>
+        </nav>
+    </header>
+
+    <section class="home" id="home">
+        <div class="content">
+            <h2>Maîtrisez Vos Modules Facilement</h2>
+            <p>NOTEai est une plateforme intelligente dédiée à la gestion des notes, des modules et des QCM interactifs. Grâce à l'intégration de l'intelligence artificielle, les étudiants peuvent s'entraîner avec des questionnaires personnalisés.</p>
+            <a href="login.php" class="btn">Get Started</a>
+        </div>
+
+        <div class="wrapper-login">
+            <h2>MEMBER LOGIN</h2>
+            <form action="php/auth.php" method="POST">
+                <div class="input-box">
+                    <i class='bx bxs-user icon'></i>
+                    <input type="email" name="email" required>
+                    <label>Email</label>
+                </div>
+                <div class="input-box">
+                    <i class='bx bxs-lock-alt icon'></i>
+                    <input type="password" name="password" required>
+                    <label>Password</label>
+                </div>
+                <div class="remember-forgot">
+                    <label><input type="checkbox" name="remember">Remember me</label>
+                    <a href="#">Forgot password?</a>
+                </div>
+                <button type="submit" class="btn">Login</button>
+                <div class="register-link">
+                    <p>Don't have an account? <a href="register.html">Register</a></p>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section id="about" class="about">
+        <h2>About Us</h2>
+        <p class="about-description">NOTEai is your ultimate study companion, combining artificial intelligence with educational expertise. Our platform helps students master their modules through personalized learning experiences and interactive assessments.</p>
+        
+        <div class="features">
+            <div class="feature-card">
+                <i class='bx bxs-graduation'></i>
+                <h3>Smart Learning</h3>
+                <p>AI-powered study materials adapted to your learning style</p>
+            </div>
+            
+            <div class="feature-card">
+                <i class='bx bx-line-chart'></i>
+                <h3>Progress Tracking</h3>
+                <p>Monitor your performance with detailed analytics</p>
+            </div>
+            
+            <div class="feature-card">
+                <i class='bx bxs-group'></i>
+                <h3>Community Support</h3>
+                <p>Connect with fellow students and educators</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="reviews" class="reviews">
+        <h2>Student Reviews</h2>
+        <div class="review-container">
+            <div class="review-card">
+                <img src="assets/images/student3.png" alt="Sami Benchafiq">
+                <h3>Sami Benchafiq</h3>
+                <div class="stars">
+                    <i class='bx bxs-star'></i>
+                    <i class='bx bxs-star'></i>
+                    <i class='bx bxs-star'></i>
+                    <i class='bx bxs-star'></i>
+                    <i class='bx bxs-star'></i>
+                </div>
+                <p>"NOTEai has completely transformed my study routine. The AI-powered quizzes are incredibly helpful!"</p>
+            </div>
+
+            <div class="review-card">
+                <img src="assets/images/student2.png" alt="Ayman Alati">
+                <h3>Ayman Alati</h3>
+                <div class="stars">
+                    <i class='bx bxs-star'></i>
+                    <i class='bx bxs-star'></i>
+                    <i class='bx bxs-star'></i>
+                    <i class='bx bxs-star'></i>
+                    <i class='bx bxs-star'></i>
+                </div>
+                <p>"This platform has made studying so much more efficient. The personalized learning approach is outstanding!"</p>
+            </div>
+
+            <div class="review-card">
+                <img src="assets/images/houssam.jpg" alt="Houssam Bouamraoui">
+                <h3>Houssam Bouamraoui</h3>
+                <div class="stars">
+                    <i class='bx bxs-star'></i>
+                    <i class='bx bxs-star'></i>
+                    <i class='bx bxs-star'></i>
+                    <i class='bx bxs-star'></i>
+                    <i class='bx bxs-star'></i>
+                </div>
+                <p>"The interactive QCM system and module management features have greatly improved my academic performance."</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact">
+        <h2>Contact Us</h2>
+        <div class="contact-container">
+            <div class="contact-info">
+                <div class="info-item">
+                    <i class='bx bxs-map'></i>
+                    <p>école supérieure de technologie à safi 24/24</p>
+                </div>
+                <div class="info-item">
+                    <i class='bx bxs-envelope'></i>
+                    <p>NOTEai@gmail.com</p>
+                </div>
+                <div class="info-item">
+                    <i class='bx bxs-phone'></i>
+                    <p>+212 612345678</p>
+                </div>
+            </div>
+
+            <form class="contact-form">
+                <input type="text" placeholder="Full Name" required>
+                <input type="email" placeholder="Email Address" required>
+                <textarea placeholder="Your Message" required></textarea>
+                <button type="submit" class="btn">Send Message</button>
+            </form>
+        </div>
+    </section>
+
+    <script src="assets/js/script.js"></script>
+</body>
+</html> 
