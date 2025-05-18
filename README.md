@@ -1,10 +1,12 @@
-# NOTEai 📚
 
-## Description
-NOTEai est une plateforme intelligente dédiée à la gestion des notes, des modules et des QCM interactifs. Le système intègre l'intelligence artificielle pour personnaliser l'expérience d'apprentissage des étudiants.
+# PROJET-WEB-S2-NOTEai  est une plateforme intelligente dédiée à la gestion des notes, des modules et des QCM interactifs. Le système intègre l'intelligence artificielle pour personnaliser l'expérience d'apprentissage des étudiants.
+
+                                                                                Made with ❤️ 
+                                                                        by l'équipe NOTEai SAMI AND AYMAN 
+
 
 ## Fonctionnalités Principales
-- Gestion des notes et des modules
+- Gestion des notes et des modules 
 - QCM interactifs
 - Organisation automatique des notes via IA
 - Interface utilisateur intuitive
@@ -54,48 +56,46 @@ NOTEai/
 ├── index.html     # Page d'accueil
 └── register.html  # Page d'inscription
 ```
+# Composants Principaux
+
+### 1. Interface Utilisateur
+- **index.html**: Page d'accueil avec login
+- **register.html**: Inscription des nouveaux utilisateurs
+
+
+### 2. Administration (/admin)
+- Gestion des utilisateurs
+### 3. Gestion des Modules (/MOD)
+- Création et édition de modules
+- Création des description dans chaque module 
+- Organisation par semestre
+
+### 4. API RESTful (/api)
+- Création des descriptions avec ai 
+
+### 5. Base de Données (/sql)
+- Tables relationnelles
+- Procédures stockées
+- Indexation optimisée
 
 ## Technologies Utilisées
+
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
 - **Backend**: PHP 8.0+
 - **Base de données**: MySQL 8.0
 - **API**: RESTful Architecture
 - **Sécurité**: JWT, HTTPS
-- **IA**: 
-  - OpenRouter AI API
-  - Algorithmes de personnalisation
-  - Analyse prédictive des notes
+- **IA**: Algorithmes de personnalisation
 
-## Configuration Requise
-1. Serveur Web Apache/Nginx
-2. PHP 8.0 ou supérieur
-3. MySQL 8.0 ou supérieur
-4. Extensions PHP requises:
-   - PDO
-   - MySQLi
-   - JSON
-   - Session
-5. Clé API OpenRouter AI
+ api key : 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 
 
-## Installation
-1. Clonez ce dépôt
-2. Configurez votre serveur web
-3. Importez la base de données depuis le dossier `sql/`
-4. Configurez les paramètres de connexion dans `config/database.php`
-5. Configurez votre clé API OpenRouter dans `ai/config.js`
-6. Lancez l'application dans votre navigateur
+   url : https://openrouter.ai/api/v1
 
-## Contribution
-1. Forkez ce dépôt
-2. Créez une branche pour vos modifications
-3. Effectuez vos changements
-4. Soumettez une pull request
 
-## Licence
-Ce projet est sous licence MIT.
 
-## Support
-Pour toute question ou assistance, veuillez ouvrir une issue dans le dépôt.
+## THE END 
 
----
-Made with ❤️ by l'équipe NOTEai SAMI AND AYMAN 
+  
+
+
+
