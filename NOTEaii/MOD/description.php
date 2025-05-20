@@ -190,6 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['description'])) {
                                     <small class="text-muted">
                                         Ajoutée le: <?= date('d/m/Y H:i', strtotime($description['created_at'])) ?>
                                     </small>
+                                    <button class="btn btn-danger btn-sm ms-2" onclick="event.stopPropagation(); deleteDescription(<?= $description['id'] ?>)">Supprimer</button>
                                 </div>
                                 <div class="description-content">
                                     <p class="mb-1 mt-2"><?= nl2br(htmlspecialchars($description['description_text'])) ?></p>
@@ -222,6 +223,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['description'])) {
                 toggleDescription(this.parentNode);
             });
         });
+
+        function deleteDescription(id) {
+            if (!confirm("Voulez-vous vraiment supprimer cette description ?")) return;
+            fetch('delete_description.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'description_id=' + encodeURIComponent(id)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Description supprimée !');
+                    location.reload();
+                } else {
+                    alert('Erreur : ' + data.message);
+                }
+            })
+            .catch(() => alert('Erreur réseau'));
+        }
     </script>
 </body>
 </html> 

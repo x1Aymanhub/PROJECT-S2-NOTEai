@@ -1,8 +1,8 @@
 Array
 (
-    [nom] => houssam
-    [prenom] => bouamraoui
-    [email] => houssambou@gmail.com
-    [password] => houssam@@
-    [confirm_password] => houssam@@
+    [nom] => lokak
+    [prenom] => sssss
+    [email] => ssss@gmail.com
+    [password] => sala@@@123
+    [confirm_password] => sala@@@123
 )

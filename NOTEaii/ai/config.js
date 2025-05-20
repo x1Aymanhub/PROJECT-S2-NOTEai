@@ -1,7 +1,7 @@
-// Configuration de l'API Google AI
-const API_KEY = "AIzaSyCccJymc412DUyuf7tXEDr-0LSIUgLJJaQ";
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
+// Configuration de l'API OpenRouter (Meta Llama 3.3 8B Instruct)
+const API_KEY = "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";
+const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 // Options de modèle
-const API_MODEL = "gemini-pro";
-const MAX_TOKENS = 1000000;
+const API_MODEL = "meta-llama/llama-3.3-8b-instruct:free";
+const MAX_TOKENS = 100000;

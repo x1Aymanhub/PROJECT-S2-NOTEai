@@ -375,4 +375,19 @@
     align-items: center;
     justify-content: center;
     font-size: 0.7rem;
+}
+/* Scrollbar fine et colorée pour la liste des descriptions */
+#desc-list-container {
+    scrollbar-width: thin;
+    scrollbar-color: #ff8800 #f1f1f1;
+}
+#desc-list-container::-webkit-scrollbar {
+    width: 6px;
+}
+#desc-list-container::-webkit-scrollbar-thumb {
+    background: #ff8800;
+    border-radius: 4px;
+}
+#desc-list-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
 } 
