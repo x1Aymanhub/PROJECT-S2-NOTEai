@@ -46,8 +46,9 @@ $stmt_descriptions->execute([$module_id]);
 $descriptions = $stmt_descriptions->fetchAll(PDO::FETCH_ASSOC);
 
 // Configuration de l'API
-$api_key = "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";
-$api_url = "https://openrouter.ai/api/v1/chat/completions";
+$API_KEY = "AIzaSyCccJymc412DUyuf7tXEDr-0LSIUgLJJaQ";
+$API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=GEMINI_API_KEY";
+
 ?>
 <!DOCTYPE html>
 <html lang="fr">

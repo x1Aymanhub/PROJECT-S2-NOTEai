@@ -265,164 +265,194 @@ async function generateQCM() {
     chatArea.appendChild(userMessageDiv);
     
     try {
-        // Construire un message système plus simple pour éviter les problèmes de formatage
+        // Construire un message système qui force strictement le format JSON
         const systemPrompt = "Crée un QCM interactif avec un court résumé et " + 
                             qcmCount + " questions. Chaque question doit avoir 4 options (A,B,C,D) " +
                             "et une seule réponse correcte. Inclus une explication pour chaque réponse. " +
-                            "Formate ta réponse en JSON valide avec les champs 'summary' et 'questions'.";
+                            "TRÈS IMPORTANT: Réponds STRICTEMENT en JSON valide, sans texte avant ou après. " +
+                            "Structure exacte attendue: { \"summary\": \"...\", \"questions\": [ { \"text\": \"...\", " +
+                            "\"options\": [ { \"id\": \"A\", \"text\": \"...\" }, ... ], \"correctAnswer\": \"A\", " +
+                            "\"explanation\": \"...\" } ] }";
 
-        // Appel à l'API
-        const response = await fetch(API_URL, {
+        // Appel à l'API Gemini - version corrigée
+        const fullUrl = `${API_URL}?key=${API_KEY}`;
+        console.log("URL d'API utilisée:", fullUrl);
+        
+        const response = await fetch(fullUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + API_KEY
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: API_MODEL,
-                messages: [
-                    ...conversationHistory,
-                    {role: "system", content: systemPrompt}
+                contents: [
+                    {
+                        role: "user",
+                        parts: [
+                            { text: systemPrompt + "\n\n" + userMessage }
+                        ]
+                    }
                 ],
-                max_tokens: MAX_TOKENS,
-                temperature: 0.3
+                generationConfig: {
+                    temperature: 0.4,
+                    topK: 32,
+                    topP: 1
+                }
             })
         });
         
         // Vérifier si la requête a réussi
         if (!response.ok) {
             const errorData = await response.json();
+            console.error("Erreur API détaillée:", errorData);
             const errorMessage = errorData.error && errorData.error.message ? errorData.error.message : 'Problème de connexion à l\'API';
             throw new Error('Erreur API: ' + errorMessage);
         }
         
         const data = await response.json();
+        console.log("Réponse API reçue:", data);
         
         // Supprimer le spinner
         loadingDiv.remove();
         
-        // Extraire et traiter le contenu de la réponse
-        if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
-            const aiMessage = data.choices[0].message.content;
+        // Extraire et traiter le contenu de la réponse Gemini
+        let aiMessage = "";
+        if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text) {
+            aiMessage = data.candidates[0].content.parts[0].text;
+        } else {
+            console.error("Réponse API malformée:", data);
+            throw new Error("La réponse de l'API ne contient pas de texte généré. Format de réponse invalide.");
+        }
+        
+        // Tentative d'extraction du JSON de multiples façons
+        let jsonContent;
+        let qcmData;
+        
+        try {
+            // Essai 1: Chercher un bloc JSON dans le contenu avec des accolades complètes
+            const jsonMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || 
+                            aiMessage.match(/({[\s\S]*})/);
             
-            // Tentative d'extraction du JSON de multiples façons
-            let jsonContent;
-            let qcmData;
-            
-            try {
-                // Essai 1: Chercher un bloc JSON dans le contenu avec des accolades complètes
-                const jsonMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || 
-                                aiMessage.match(/({[\s\S]*})/);
-                
-                if (jsonMatch && jsonMatch[1]) {
-                    jsonContent = jsonMatch[1].trim();
-                } else {
-                    // Si pas de correspondance, essayer d'utiliser tout le contenu
-                    jsonContent = aiMessage.trim();
-                }
-                
-                // Nettoyage supplémentaire - retirer markdown, espaces, etc.
-                jsonContent = jsonContent.replace(/^```json\s*|```$/g, '').trim();
-                
-                // Analyser le JSON
-                qcmData = JSON.parse(jsonContent);
-                
-                // Vérification de la structure minimale attendue
-                if (!qcmData.summary || !qcmData.questions || !Array.isArray(qcmData.questions)) {
-                    throw new Error("Structure JSON incorrecte");
-                }
-                
-                // Nettoyer et normaliser les données des questions
-                qcmData.questions = qcmData.questions.map((question, index) => {
-                    // Assurer que les propriétés de base existent
-                    const cleanedQuestion = {
-                        text: question.text || `Question ${index + 1}`,
-                        options: [],
-                        correctAnswer: question.correctAnswer || "A",
-                        explanation: question.explanation || "Explication non disponible."
-                    };
-                    
-                    // Normaliser les options
-                    if (question.options && Array.isArray(question.options)) {
-                        cleanedQuestion.options = question.options.map(opt => ({
-                            id: opt.id || '',
-                            text: opt.text || 'Option sans texte'
-                        }));
-                    } else {
-                        // Créer des options par défaut si aucune n'existe
-                        cleanedQuestion.options = [
-                            {id: "A", text: "Option A"},
-                            {id: "B", text: "Option B"},
-                            {id: "C", text: "Option C"},
-                            {id: "D", text: "Option D"}
-                        ];
-                    }
-                    
-                    return cleanedQuestion;
-                });
-                
-            } catch (e) {
-                console.error("Erreur lors du parsing JSON:", e, "Contenu reçu:", aiMessage);
-                
-                // Tenter de créer une structure minimale à partir du texte reçu
-                const lines = aiMessage.split('\n');
-                const summary = lines[0] || "Résumé non disponible";
-                
-                // Créer un QCM de secours minimal
-                qcmData = {
-                    summary: summary,
-                    questions: [{
-                        text: "Question exemple (erreur de formatage dans la réponse originale)",
-                        options: [
-                            {id: "A", text: "Option A"},
-                            {id: "B", text: "Option B"},
-                            {id: "C", text: "Option C"},
-                            {id: "D", text: "Option D"}
-                        ],
-                        correctAnswer: "A",
-                        explanation: "Les données originales n'ont pas pu être analysées correctement."
-                    }]
-                };
-                
-                // Ajouter un message d'erreur visible
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'message ai';
-                errorDiv.innerHTML = `
-                    <p class="text-danger">
-                        <i class="fas fa-exclamation-triangle"></i> 
-                        Erreur de formatage dans la réponse de l'IA. Un QCM minimal a été généré.
-                    </p>
-                    <p>Détail technique: ${e.message}</p>
-                `;
-                chatArea.appendChild(errorDiv);
+            if (jsonMatch && jsonMatch[1]) {
+                jsonContent = jsonMatch[1].trim();
+            } else {
+                // Si pas de correspondance, essayer d'utiliser tout le contenu
+                jsonContent = aiMessage.trim();
             }
             
-            // Stocker le QCM courant
-            currentQCM = qcmData;
+            // Nettoyage supplémentaire - retirer markdown, espaces, etc.
+            jsonContent = jsonContent.replace(/^```json\s*|```$/g, '').trim();
             
-            // Créer la réponse de l'IA avec le QCM
-            const aiMessageDiv = document.createElement('div');
-            aiMessageDiv.className = 'message ai';
+            // Analyser le JSON
+            qcmData = JSON.parse(jsonContent);
             
-            // Construire le HTML pour le QCM
-            let qcmHtml = `
-                <h4 class="qcm-title">Résumé des concepts clés</h4>
-                <p class="qcm-summary">${qcmData.summary}</p>
-                <div class="qcm-container">
-                    <h4 class="qcm-title">QCM Généré</h4>
-                    <div id="qcm-questions">
+            // Vérification de la structure minimale attendue
+            if (!qcmData.summary || !qcmData.questions || !Array.isArray(qcmData.questions)) {
+                throw new Error("Structure JSON incorrecte");
+            }
+            
+            // Nettoyer et normaliser les données des questions
+            qcmData.questions = qcmData.questions.map((question, index) => {
+                // Assurer que les propriétés de base existent
+                const cleanedQuestion = {
+                    text: question.text || `Question ${index + 1}`,
+                    options: [],
+                    correctAnswer: question.correctAnswer || "A",
+                    explanation: question.explanation || "Explication non disponible."
+                };
+                
+                // Normaliser les options
+                if (question.options && Array.isArray(question.options)) {
+                    cleanedQuestion.options = question.options.map(opt => ({
+                        id: opt.id || '',
+                        text: opt.text || 'Option sans texte'
+                    }));
+                } else {
+                    // Créer des options par défaut si aucune n'existe
+                    cleanedQuestion.options = [
+                        {id: "A", text: "Option A"},
+                        {id: "B", text: "Option B"},
+                        {id: "C", text: "Option C"},
+                        {id: "D", text: "Option D"}
+                    ];
+                }
+                
+                return cleanedQuestion;
+            });
+            
+        } catch (e) {
+            console.error("Erreur lors du parsing JSON:", e, "Contenu reçu:", aiMessage);
+            
+            // Tenter de créer une structure minimale à partir du texte reçu
+            const lines = aiMessage.split('\n');
+            const summary = lines[0] || "Résumé non disponible";
+            
+            // Créer un QCM de secours minimal
+            qcmData = {
+                summary: summary,
+                questions: [{
+                    text: "Question exemple (erreur de formatage dans la réponse originale)",
+                    options: [
+                        {id: "A", text: "Option A"},
+                        {id: "B", text: "Option B"},
+                        {id: "C", text: "Option C"},
+                        {id: "D", text: "Option D"}
+                    ],
+                    correctAnswer: "A",
+                    explanation: "Les données originales n'ont pas pu être analysées correctement."
+                }]
+            };
+            
+            // Ajouter un message d'erreur visible avec plus de détails
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'message ai';
+            errorDiv.innerHTML = `
+                <p class="text-danger">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    Erreur de formatage dans la réponse de l'IA. Un QCM minimal a été généré.
+                </p>
+                <p>Détail technique: ${e.message}</p>
+                <details>
+                    <summary>Voir la réponse brute de l'IA (pour le debug)</summary>
+                    <pre style="white-space: pre-wrap; background: #f8f9fa; border: 1px solid #ccc; padding: 8px; max-height: 300px; overflow-y: auto;">${aiMessage.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                </details>
+                <p class="mt-3 text-info">
+                    <i class="fas fa-lightbulb"></i> Conseils:
+                    <ul>
+                        <li>Essayez de réduire la taille des descriptions</li>
+                        <li>Réduisez le nombre de questions demandées</li>
+                        <li>Si le problème persiste, contactez l'administrateur</li>
+                    </ul>
+                </p>
             `;
-            
-            // Ajouter chaque question avec ses options
-            qcmData.questions.forEach((question, qIndex) => {
-                qcmHtml += `
-                    <div class="qcm-question card" id="question-${qIndex}">
-                        <div class="card-header">
-                            <h5 class="mb-0">Question ${qIndex + 1}</h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="question-text"><strong>${question.text}</strong></p>
-                            <div class="options-container">
+            chatArea.appendChild(errorDiv);
+        }
+        
+        // Stocker le QCM courant
+        currentQCM = qcmData;
+        
+        // Créer la réponse de l'IA avec le QCM
+        const aiMessageDiv = document.createElement('div');
+        aiMessageDiv.className = 'message ai';
+        
+        // Construire le HTML pour le QCM
+        let qcmHtml = `
+            <h4 class="qcm-title">Résumé des concepts clés</h4>
+            <p class="qcm-summary">${qcmData.summary}</p>
+            <div class="qcm-container">
+                <h4 class="qcm-title">QCM Généré</h4>
+                <div id="qcm-questions">
+        `;
+        
+        // Ajouter chaque question avec ses options
+        qcmData.questions.forEach((question, qIndex) => {
+            qcmHtml += `
+                <div class="qcm-question card" id="question-${qIndex}">
+                    <div class="card-header">
+                        <h5 class="mb-0">Question ${qIndex + 1}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="question-text"><strong>${question.text}</strong></p>
+                        <div class="options-container">
                 `;
                 
                 // Ajouter chaque option
@@ -442,42 +472,39 @@ async function generateQCM() {
                 }
                 
                 qcmHtml += `
-                            </div>
-                            <div class="feedback-container hidden" id="feedback-${qIndex}"></div>
-                            <button class="btn btn-outline-info mt-3 explain-btn" onclick="explainQuestion(${qIndex})">
-                                <i class="fas fa-question-circle"></i> Demander une explication
-                            </button>
                         </div>
-                    </div>
-                `;
-            });
-            
-            // Ajouter les boutons de contrôle
-            qcmHtml += `
-                    </div>
-                    <div class="mt-4 d-flex justify-content-between">
-                        <button class="btn btn-success check-answers-btn" onclick="checkAnswers()">
-                            <i class="fas fa-check-circle"></i> Vérifier les réponses
-                        </button>
-                        <button class="btn btn-primary new-qcm-btn" onclick="generateQCM()">
-                            <i class="fas fa-sync-alt"></i> Générer un nouveau QCM
+                        <div class="feedback-container hidden" id="feedback-${qIndex}"></div>
+                        <button class="btn btn-outline-info mt-3 explain-btn" onclick="explainQuestion(${qIndex})">
+                            <i class="fas fa-question-circle"></i> Demander une explication
                         </button>
                     </div>
                 </div>
             `;
-            
-            // Ajouter le HTML à l'élément de message
-            aiMessageDiv.innerHTML = qcmHtml;
-            chatArea.appendChild(aiMessageDiv);
-            
-            // Ajouter la réponse à l'historique de conversation
-            conversationHistory.push({role: "assistant", content: aiMessage});
-            
-            // Faire défiler vers le bas
-            chatArea.scrollTop = chatArea.scrollHeight;
-        } else {
-            throw new Error("La réponse de l'API ne contient pas de message");
-        }
+        });
+        
+        // Ajouter les boutons de contrôle
+        qcmHtml += `
+                </div>
+                <div class="mt-4 d-flex justify-content-between">
+                    <button class="btn btn-success check-answers-btn" onclick="checkAnswers()">
+                        <i class="fas fa-check-circle"></i> Vérifier les réponses
+                    </button>
+                    <button class="btn btn-primary new-qcm-btn" onclick="generateQCM()">
+                        <i class="fas fa-sync-alt"></i> Générer un nouveau QCM
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Ajouter le HTML à l'élément de message
+        aiMessageDiv.innerHTML = qcmHtml;
+        chatArea.appendChild(aiMessageDiv);
+        
+        // Ajouter la réponse à l'historique de conversation
+        conversationHistory.push({role: "assistant", content: aiMessage});
+        
+        // Faire défiler vers le bas
+        chatArea.scrollTop = chatArea.scrollHeight;
     } catch (error) {
         console.error("Erreur lors de la génération du QCM:", error);
         
@@ -492,11 +519,14 @@ async function generateQCM() {
                 <i class="fas fa-exclamation-circle"></i> Une erreur s'est produite lors de la génération du QCM:
             </p>
             <p>${error.message}</p>
-            <p>Conseils:</p>
+            <p class="mt-3 text-info">
+                <i class="fas fa-lightbulb"></i> Conseils:
+            </p>
             <ul>
                 <li>Vérifiez votre connexion internet</li>
                 <li>Essayez avec une description plus courte</li>
                 <li>Réduisez le nombre de questions demandées</li>
+                <li>Si le problème persiste, veuillez contacter l'administrateur</li>
             </ul>
         `;
         chatArea.appendChild(errorDiv);
@@ -657,10 +687,13 @@ async function explainQuestion(questionIndex) {
     userMessageDiv.innerHTML = `<p>Pouvez-vous m'expliquer davantage la question ${questionIndex + 1} ?</p>`;
     chatArea.appendChild(userMessageDiv);
     
+    // Contenu de la demande
+    const userPrompt = `Pouvez-vous m'expliquer davantage la question suivante: "${question.text}" et pourquoi la réponse est "${question.correctAnswer}" ?`;
+    
     // Ajouter à l'historique
     conversationHistory.push({
         role: "user", 
-        content: `Pouvez-vous m'expliquer davantage la question suivante: "${question.text}" et pourquoi la réponse est "${question.correctAnswer}" ?`
+        content: userPrompt
     });
     
     // Afficher le spinner
@@ -674,27 +707,42 @@ async function explainQuestion(questionIndex) {
     chatArea.appendChild(loadingDiv);
     
     try {
-        // Appel à l'API
-        const response = await fetch(API_URL, {
+        // Appel à l'API Gemini
+        const fullUrl = `${API_URL}?key=${API_KEY}`;
+        const response = await fetch(fullUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + API_KEY
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: API_MODEL,
-                messages: conversationHistory,
-                max_tokens: MAX_TOKENS
+                contents: [
+                    {
+                        role: "user",
+                        parts: [
+                            { text: userPrompt }
+                        ]
+                    }
+                ],
+                generationConfig: {
+                    temperature: 0.4
+                }
             })
         });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error('Erreur API: ' + (errorData.error?.message || 'Problème de connexion'));
+        }
         
         const data = await response.json();
         
         // Supprimer le spinner
         loadingDiv.remove();
         
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-            const aiMessage = data.choices[0].message.content;
+        // Extraire le texte généré par Gemini
+        let aiMessage = "";
+        if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+            aiMessage = data.candidates[0].content.parts[0].text;
             
             // Afficher l'explication
             const aiMessageDiv = document.createElement('div');
@@ -708,7 +756,8 @@ async function explainQuestion(questionIndex) {
             // Reconfigurer les gestionnaires d'événements
             setupOptionClickHandlers();
         } else {
-            throw new Error("Format de réponse invalide");
+            console.error("Réponse API malformée:", data);
+            throw new Error("Format de réponse invalide. La structure de la réponse de l'API n'est pas celle attendue.");
         }
     } catch (error) {
         console.error("Erreur lors de la demande d'explication:", error);
@@ -759,27 +808,42 @@ async function sendQuestion() {
     chatArea.appendChild(loadingDiv);
     
     try {
-        // Appel à l'API
-        const response = await fetch(API_URL, {
+        // Appel à l'API Gemini
+        const fullUrl = `${API_URL}?key=${API_KEY}`;
+        const response = await fetch(fullUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + API_KEY
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: API_MODEL,
-                messages: conversationHistory,
-                max_tokens: MAX_TOKENS
+                contents: [
+                    {
+                        role: "user",
+                        parts: [
+                            { text: question }
+                        ]
+                    }
+                ],
+                generationConfig: {
+                    temperature: 0.4
+                }
             })
         });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error('Erreur API: ' + (errorData.error?.message || 'Problème de connexion'));
+        }
         
         const data = await response.json();
         
         // Supprimer le spinner
         loadingDiv.remove();
         
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-            const aiMessage = data.choices[0].message.content;
+        // Extraire le texte généré par Gemini
+        let aiMessage = "";
+        if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+            aiMessage = data.candidates[0].content.parts[0].text;
             
             // Afficher la réponse
             const aiMessageDiv = document.createElement('div');
@@ -790,7 +854,8 @@ async function sendQuestion() {
             // Ajouter à l'historique
             conversationHistory.push({role: "assistant", content: aiMessage});
         } else {
-            throw new Error("Format de réponse invalide");
+            console.error("Réponse API malformée:", data);
+            throw new Error("Format de réponse invalide. La structure de la réponse de l'API n'est pas celle attendue.");
         }
     } catch (error) {
         console.error("Erreur lors de l'envoi de la question:", error);

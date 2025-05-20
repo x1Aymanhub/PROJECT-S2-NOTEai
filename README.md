@@ -87,9 +87,9 @@ NOTEai/
 - **Sécurité**: JWT, HTTPS
 - **IA**: Algorithmes de personnalisation
 
- api key : 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 
+   api key : AIzaSyCccJymc412DUyuf7tXEDr-0LSIUgLJJaQ
 
-   url : https://openrouter.ai/api/v1
+   url : https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=GEMINI_API_KEY
 
 
 
