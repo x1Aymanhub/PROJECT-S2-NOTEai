@@ -37,7 +37,7 @@ try {
     <title>Gestion des Modules - NOTEAI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="module.css">
+    <link rel="stylesheet" href="modules.css">
    
 </head>
 <body>
@@ -82,7 +82,7 @@ try {
                                     Coefficient: <?= htmlspecialchars($module['coefficient']) ?>
                                 </p>
                                 <a href="description.php?module_id=<?= $module['id'] ?>" class="btn btn-primary">
-                                    <i class="fas fa-info-circle"></i> Ajouter modules
+                                    <i class="fas fa-info-circle"></i> Ajouter des descriptions
                                 </a>
                             </div>
                         </div>

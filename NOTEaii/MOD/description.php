@@ -58,6 +58,13 @@ try {
     $stmt_descriptions->execute([$module_id]);
     $descriptions = $stmt_descriptions->fetchAll(PDO::FETCH_ASSOC);
     
+    // Trier les descriptions par date croissante (ancienne -> récente)
+    if (!empty($descriptions)) {
+        usort($descriptions, function($a, $b) {
+            return strtotime($a['created_at']) - strtotime($b['created_at']);
+        });
+    }
+    
 } catch(PDOException $e) {
     $error = $e->getMessage();
 }
@@ -92,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['description'])) {
     <title>Descriptions du Module - NOTEAI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="module.css">
+    <link rel="stylesheet" href="modules.css">
     <style>
         .description-item {
             height: 150px;
@@ -158,21 +165,102 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['description'])) {
             </div>
         </div>
         
-        <!-- Formulaire pour ajouter une description -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>Ajouter une nouvelle description</h4>
+        <!-- Drawer d'ajout de module -->
+        <div id="addModuleDrawer" class="top-drawer-modal" style="display:none;">
+            <div class="drawer-header d-flex justify-content-between align-items-center px-4 pt-3">
+                <h3 class="mb-0">Ajouter un Module</h3>
+                <button class="btn-close" onclick="closeDrawer()"></button>
             </div>
-            <div class="card-body">
-                <form action="description.php?module_id=<?= $module_id ?>" method="post">
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Enregistrer la description</button>
+            <form class="px-4 pb-4" action="description.php?module_id=<?= $module_id ?>" method="post">
+                <div class="mb-3">
+                    <label for="module_nom" class="form-label">Nom du module</label>
+                    <input type="text" class="form-control" id="module_nom" name="module_nom" required>
+                </div>
+                <div class="mb-3">
+                    <label for="semestre" class="form-label">Semestre</label>
+                    <input type="text" class="form-control" id="semestre" name="semestre" required>
+                </div>
+                <div class="mb-3">
+                    <label for="coefficient" class="form-label">Coefficient</label>
+                    <input type="number" class="form-control" id="coefficient" name="coefficient" required>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary" onclick="closeDrawer()">Annuler</button>
+                    <button type="submit" class="btn" style="background-color: #8B4513; color: white;">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+        <script>
+        function openDrawer() {
+            document.getElementById('addModuleDrawer').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('addModuleDrawer').classList.add('show');
+            }, 10);
+        }
+        function closeDrawer() {
+            document.getElementById('addModuleDrawer').classList.remove('show');
+            setTimeout(() => {
+                document.getElementById('addModuleDrawer').style.display = 'none';
+            }, 400);
+        }
+        </script>
+        
+        <!-- Barre d'ajout de description -->
+        <div class="card mb-4 shadow-sm w-100" style="border-radius: 16px;">
+            <div class="card-body d-flex flex-column flex-md-row align-items-md-center gap-3">
+                <form id="desc-form" class="flex-grow-1 d-flex flex-column flex-md-row align-items-md-center gap-3 w-100" action="description.php?module_id=<?= $module_id ?>" method="post">
+                    <textarea class="form-control" name="description" id="description-textarea" rows="2" placeholder="Ajouter une nouvelle description..." required style="resize: none; border-radius: 10px; min-height: 60px; font-size: 1.1rem; padding: 18px 20px;"></textarea>
+                    <input type="hidden" name="edit_id" id="edit-id" value="">
+                    <button type="submit" class="btn btn-primary px-4" style="border-radius: 12px; min-width: 160px; height: 60px; font-size: 1.15rem; display: flex; align-items: center; justify-content: center;">Ajouter</button>
                 </form>
             </div>
         </div>
+        <script>
+        // Auto-ajustement de la textarea
+        const textarea = document.getElementById('description-textarea');
+        const editIdInput = document.getElementById('edit-id');
+        const submitBtn = document.getElementById('desc-submit-btn');
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 180) + 'px';
+        });
+        // Gestion édition
+        function editDescription(btn) {
+            document.getElementById('edit-description-textarea').value = btn.getAttribute('data-description');
+            document.getElementById('edit-description-id').value = btn.getAttribute('data-id');
+            var modal = new bootstrap.Modal(document.getElementById('editDescriptionModal'));
+            modal.show();
+        }
+        document.getElementById('desc-form').addEventListener('reset', function() {
+            editIdInput.value = '';
+            submitBtn.textContent = 'Ajouter la description ' + (document.querySelectorAll('.description-card').length + 1);
+        });
+        // Initialiser le bouton au chargement
+        window.addEventListener('DOMContentLoaded', function() {
+            submitBtn.textContent = 'Ajouter la description ' + (document.querySelectorAll('.description-card').length + 1);
+        });
+        document.getElementById('desc-form').addEventListener('submit', function(e) {
+            if (editIdInput.value) {
+                e.preventDefault();
+                submitBtn.disabled = true;
+                fetch('modifydescription.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'id=' + encodeURIComponent(editIdInput.value) + '&description=' + encodeURIComponent(textarea.value)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Erreur : ' + data.message);
+                    }
+                })
+                .catch(() => alert('Erreur réseau'))
+                .finally(() => { submitBtn.disabled = false; });
+            }
+        });
+        </script>
         
         <!-- Liste des descriptions existantes -->
         <div class="card">
@@ -183,19 +271,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['description'])) {
                 <?php if (empty($descriptions)): ?>
                     <p class="text-muted">Aucune description n'a encore été ajoutée pour ce module.</p>
                 <?php else: ?>
-                    <div class="list-group">
-                        <?php foreach ($descriptions as $description): ?>
-                            <div class="list-group-item description-item" onclick="toggleDescription(this)">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <small class="text-muted">
-                                        Ajoutée le: <?= date('d/m/Y H:i', strtotime($description['created_at'])) ?>
-                                    </small>
-                                    <button class="btn btn-danger btn-sm ms-2" onclick="event.stopPropagation(); deleteDescription(<?= $description['id'] ?>)">Supprimer</button>
+                    <div class="list-group d-flex flex-column align-items-center" style="max-height: 600px; overflow-y: auto; scrollbar-width: thin;">
+                        <?php foreach ($descriptions as $i => $description): ?>
+                            <div class="description-card position-relative mb-4 animate-fade-in" style="max-width: 700px; width: 100%; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 32px 24px 24px 24px;">
+                                <div class="position-absolute top-0 end-0 mt-3 me-3 d-flex gap-2">
+                                    <button class="btn btn-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center shadow-sm" title="Modifier" style="width:36px; height:36px;" onclick="editDescription(this)" data-id="<?= $description['id'] ?>" data-description="<?= htmlspecialchars($description['description_text'], ENT_QUOTES) ?>">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn btn-danger btn-sm rounded-circle d-flex align-items-center justify-content-center shadow-sm" title="Supprimer" style="width:36px; height:36px;" onclick="confirmDelete(<?= $description['id'] ?>)">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center shadow-sm" title="Voir plus" style="width:36px; height:36px;" onclick="showDescriptionModal(this)" data-description="<?= htmlspecialchars(json_encode($description['description_text'])) ?>">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
                                 </div>
-                                <div class="description-content">
-                                    <p class="mb-1 mt-2"><?= nl2br(htmlspecialchars($description['description_text'])) ?></p>
+                                <div class="text-center mb-2">
+                                    <strong>Description <?= $i+1 ?></strong><br>
+                                    <small class="text-muted">Ajoutée le : <?= date('d/m/Y H:i', strtotime($description['created_at'])) ?></small>
                                 </div>
-                                <button class="btn btn-sm btn-primary expand-btn">Voir plus</button>
+                                <div class="text-center">
+                                    <p class="mb-0 short-description" style="font-size:1.1rem; color:#333; letter-spacing:0.01em; line-height:1.6; max-height: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        <?= nl2br(htmlspecialchars($description['description_text'])) ?>
+                                    </p>
+                                </div>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -204,44 +302,107 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['description'])) {
         </div>
     </div>
     
+    <!-- Modale Bootstrap pour Voir plus -->
+    <div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="descriptionModalLabel">Description complète</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="descriptionModalBody"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modale Bootstrap pour modifier une description -->
+    <div class="modal fade" id="editDescriptionModal" tabindex="-1" aria-labelledby="editDescriptionModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editDescriptionModalLabel">Modifier la description</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <textarea class="form-control" id="edit-description-textarea" rows="10" style="resize: vertical; min-height: 250px;"></textarea>
+            <input type="hidden" id="edit-description-id">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="button" class="btn btn-primary" id="save-edit-description">Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function toggleDescription(element) {
-            element.classList.toggle('expanded');
-            const btn = element.querySelector('.expand-btn');
-            if (element.classList.contains('expanded')) {
-                btn.textContent = 'Voir moins';
-            } else {
-                btn.textContent = 'Voir plus';
+        function confirmDelete(id) {
+            if (confirm('Voulez-vous vraiment supprimer cette description ?')) {
+                fetch('delete_description.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'description_id=' + encodeURIComponent(id)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Erreur : ' + data.message);
+                    }
+                })
+                .catch(() => alert('Erreur réseau'));
             }
         }
-        
-        // Empêcher que le clic sur le bouton propage l'événement à l'élément parent
-        document.querySelectorAll('.expand-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                toggleDescription(this.parentNode);
-            });
-        });
-
-        function deleteDescription(id) {
-            if (!confirm("Voulez-vous vraiment supprimer cette description ?")) return;
-            fetch('delete_description.php', {
+        function showDescriptionModal(btn) {
+            var desc = btn.getAttribute('data-description');
+            desc = JSON.parse(desc);
+            document.getElementById('descriptionModalBody').innerText = desc;
+            var modal = new bootstrap.Modal(document.getElementById('descriptionModal'));
+            modal.show();
+        }
+        document.getElementById('save-edit-description').onclick = function() {
+            const id = document.getElementById('edit-description-id').value;
+            const text = document.getElementById('edit-description-textarea').value;
+            this.disabled = true;
+            fetch('modifydescription.php', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'description_id=' + encodeURIComponent(id)
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + encodeURIComponent(id) + '&description=' + encodeURIComponent(text)
             })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    alert('Description supprimée !');
                     location.reload();
                 } else {
                     alert('Erreur : ' + data.message);
                 }
             })
-            .catch(() => alert('Erreur réseau'));
-        }
+            .catch(() => alert('Erreur réseau'))
+            .finally(() => { this.disabled = false; });
+        };
     </script>
+    <style>
+        .animate-fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.7s cubic-bezier(.23,1.01,.32,1) forwards;
+        }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .description-card:hover {
+            box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+            transform: translateY(-2px) scale(1.01);
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+    </style>
 </body>
 </html> 

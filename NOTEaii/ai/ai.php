@@ -64,6 +64,14 @@
 </head>
 <body>
     <div class="container-fluid py-4">
+        <div class="d-flex justify-content-end mb-3">
+            <a href="../MOD/description.php?module_id=" class="btn btn-secondary me-2" id="btn-back-desc">
+                <i class="fas fa-arrow-left"></i> Revenir aux descriptions
+            </a>
+            <a href="../php/logout.php" class="btn btn-danger">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </a>
+        </div>
         <div class="row">
             <!-- Sidebar Descriptions -->
             <div class="col-md-4 col-lg-3">
@@ -155,7 +163,14 @@
                     renderCurrentSelection();
                 });
         }
-        document.addEventListener('DOMContentLoaded', fetchDescriptions);
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchDescriptions();
+            // Met à jour le lien "Revenir aux descriptions" avec le bon module_id
+            const moduleId = getModuleIdFromUrl();
+            if (moduleId) {
+                document.getElementById('btn-back-desc').href = `../MOD/description.php?module_id=${moduleId}`;
+            }
+        });
 
         function renderDescriptions() {
             let list = descriptions;
@@ -170,10 +185,12 @@
             }
             const descList = document.getElementById('desc-list');
             descList.innerHTML = list.length ? '' : '<div class="empty-selection-message">Aucune description trouvée</div>';
-            list.forEach(desc => {
+            list.forEach((desc, idx) => {
+                const index = descriptions.findIndex(d => d.id === desc.id);
+                const label = `Description ${index + 1}`;
                 const div = document.createElement('div');
                 div.className = 'desc-item' + (selectedDescriptions.includes(desc.id) ? ' selected' : '');
-                div.innerHTML = `<span class='desc-title'>${desc.title}</span> <span class='desc-date'>${desc.date}</span><br><span class='desc-content'>${desc.content.substring(0, 20)}...</span>`;
+                div.innerHTML = `<span class='desc-title'>${label}</span> <span class='desc-date'>${desc.date}</span><br><span class='desc-content'>${desc.content.substring(0, 20)}...</span>`;
                 div.onclick = () => toggleSelect(desc.id);
                 descList.appendChild(div);
             });
@@ -186,11 +203,15 @@
             }
             renderDescriptions();
             renderCurrentSelection();
+            updateQcmButtonLabel();
         }
         function renderCurrentSelection() {
             const current = document.getElementById('desc-current-list');
             current.innerHTML = selectedDescriptions.length
-                ? descriptions.filter(d => selectedDescriptions.includes(d.id)).map(d => `<div class='desc-current'>${d.title}</div>`).join('')
+                ? descriptions.filter(d => selectedDescriptions.includes(d.id)).map(d => {
+                    const index = descriptions.findIndex(desc => desc.id === d.id);
+                    return `<div class='desc-current'>Description ${index + 1}</div>`;
+                }).join('')
                 : '<div class="empty-selection-message">Aucune sélection</div>';
         }
         const tabAll = document.getElementById('tab-all');
@@ -374,6 +395,17 @@
                 loadingSpinner.classList.add('d-none');
             });
         });
+        // Dans le formulaire QCM, modifie le texte du bouton selon la sélection
+        function updateQcmButtonLabel() {
+            const btn = document.querySelector('#qcm-form button[type="submit"]');
+            if (!btn) return;
+            if (selectedDescriptions.length === 1) {
+                const index = descriptions.findIndex(d => d.id === selectedDescriptions[0]);
+                btn.innerHTML = `<i class="fas fa-robot me-2"></i>Générer le QCM pour Description ${index + 1}`;
+            } else {
+                btn.innerHTML = `<i class="fas fa-robot me-2"></i>Générer le QCM`;
+            }
+        }
     </script>
 </body>
 </html> 
