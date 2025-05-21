@@ -90,42 +90,62 @@
             </div>
             <!-- Main Content -->
             <div class="col-md-8 col-lg-9">
-                <div class="chat-container">
-                    <div class="chat-main">
-                        <div class="chat-messages" id="chat-messages">
-                            <div class="qcm-container">
-                                <h3 class="qcm-title">Générateur de QCM avec IA</h3>
-                                <div class="qcm-summary">
-                                    Sélectionnez une description à gauche et cliquez sur "Générer le QCM".
-                                </div>
-                                <!-- QCM Generation Form -->
-                                <form id="qcm-form" class="mb-4">
-                                    <div class="mb-3">
-                                        <label for="question-count" class="form-label">Nombre de questions</label>
-                                        <input type="number" class="form-control" id="question-count" min="1" max="20" value="5" required>
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="chat-container">
+                            <div class="chat-main">
+                                <div class="chat-messages" id="chat-messages">
+                                    <div class="qcm-container">
+                                        <h3 class="qcm-title">Générateur de QCM avec IA</h3>
+                                        <div class="qcm-summary">
+                                            Sélectionnez une description à gauche et cliquez sur "Générer le QCM".
+                                        </div>
+                                        <!-- QCM Generation Form -->
+                                        <form id="qcm-form" class="mb-4">
+                                            <div class="mb-3">
+                                                <label for="question-count" class="form-label">Nombre de questions</label>
+                                                <input type="number" class="form-control" id="question-count" min="1" max="20" value="5" required>
+                                            </div>
+                                            <button type="submit" class="btn btn-generate-qcm">
+                                                <i class="fas fa-robot me-2"></i>Générer le QCM
+                                            </button>
+                                        </form>
+                                        <!-- QCM Display Area -->
+                                        <div id="qcm-display" class="d-none">
+                                            <div id="questions-container"></div>
+                                            <div class="text-center mt-4">
+                                                <button id="check-answers" class="btn btn-success check-answers-btn">
+                                                    <i class="fas fa-check me-2"></i>Vérifier les réponses
+                                                </button>
+                                                <button id="new-qcm" class="btn btn-primary new-qcm-btn ms-2">
+                                                    <i class="fas fa-sync me-2"></i>Nouveau QCM
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <!-- Loading Spinner -->
+                                        <div id="loading-spinner" class="spinner-container d-none">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Chargement...</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <button type="submit" class="btn" style="background:#7a3a00; color:#fff; width:100%; font-weight:500;">
-                                        <i class="fas fa-robot me-2"></i>Générer le QCM
-                                    </button>
-                                </form>
-                                <!-- QCM Display Area -->
-                                <div id="qcm-display" class="d-none">
-                                    <div id="questions-container"></div>
-                                    <div class="text-center mt-4">
-                                        <button id="check-answers" class="btn btn-success check-answers-btn">
-                                            <i class="fas fa-check me-2"></i>Vérifier les réponses
-                                        </button>
-                                        <button id="new-qcm" class="btn btn-primary new-qcm-btn ms-2">
-                                            <i class="fas fa-sync me-2"></i>Nouveau QCM
-                                        </button>
-                                    </div>
                                 </div>
-                                <!-- Loading Spinner -->
-                                <div id="loading-spinner" class="spinner-container d-none">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Chargement...</span>
-                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <!-- Chatbot Area -->
+                        <div class="chatbot-container">
+                            <h3>Chatbot Interactif</h3>
+                            <div class="chat-box" id="chat-box">
+                                <!-- Messages will be loaded here -->
+                                <div class="message received">
+                                    <p>Bonjour ! Posez-moi une question sur les descriptions sélectionnées.</p>
                                 </div>
+                            </div>
+                            <div class="chat-input">
+                                <input type="text" id="chat-message-input" placeholder="Votre message...">
+                                <button id="send-message-btn" class="btn btn-primary">Envoyer</button>
                             </div>
                         </div>
                     </div>
@@ -405,6 +425,58 @@
             } else {
                 btn.innerHTML = `<i class="fas fa-robot me-2"></i>Générer le QCM`;
             }
+        }
+
+        // Chatbot Logic
+        const chatBox = document.getElementById('chat-box');
+        const chatMessageInput = document.getElementById('chat-message-input');
+        const sendMessageBtn = document.getElementById('send-message-btn');
+
+        sendMessageBtn.addEventListener('click', sendMessage);
+        chatMessageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const message = chatMessageInput.value.trim();
+            if (!message) return;
+
+            appendMessage(message, 'sent');
+            chatMessageInput.value = '';
+            // TODO: Add loading indicator
+
+            // Send message to backend (send_message.php)
+            fetch('send_message.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message, selectedDescriptions: selectedDescriptions })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // TODO: Remove loading indicator
+                if (data.success) {
+                    appendMessage(data.reply, 'received');
+                } else {
+                    appendMessage('Error: ' + (data.message || 'Could not get reply.'), 'received');
+                }
+            })
+            .catch(error => {
+                // TODO: Remove loading indicator
+                console.error('Error:', error);
+                appendMessage('Error: Could not connect to chatbot.', 'received');
+            });
+        }
+
+        function appendMessage(message, type) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', type);
+            messageElement.innerHTML = `<p>${message}</p>`;
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
         }
     </script>
 </body>

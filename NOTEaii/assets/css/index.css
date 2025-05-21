@@ -17,13 +17,20 @@ header {
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(10px);
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     z-index: 1000;
 }
 
+header img {
+    height: 100px; /* Adjust as needed */
+    margin-right: 20px; /* Space between logo and navigation */
+}
+
 body {
     padding-top: 80px;
+    margin: 0;
+    min-height: 100vh;
 }
 
 .home {
@@ -44,6 +51,10 @@ header .logo{
     color: rgb(255, 255, 255);
     font-weight: 600;
     text-decoration: none;
+}
+
+header .logo .yellow-text {
+    color: #ffd700;
 }
 
 .nav a{
@@ -75,27 +86,30 @@ header .logo{
     position: relative;
     width: 100%;
     height: 100vh;
-    background-image: url('http://localhost/888/NOTEAI/assets/IMAGES/main.png');
+    background-image: url('../IMAGES/main.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
     padding: 80px 100px;
 }
 
 .home .content {
-    position: absolute;
-    left: 100px;
+    /* position: absolute; */
+    /* left: 100px; */
     max-width: 45%;
     color: rgb(240, 240, 240);
+    flex: 1; /* Allow content to take up available space */
+    margin-right: 30px; /* Add some space between content and form */
 }
 
 .home .wrapper-login {
     width: 440px;
-    margin-right: 50px;
+    /* margin-right: 50px; */ /* Removed margin-right */
     animation: slideInRight 0.5s ease-out;
+    flex-shrink: 0; /* Prevent the login form from shrinking */
 }
 
 @keyframes slideInRight {
@@ -110,14 +124,25 @@ header .logo{
 }
 
 .content h2{
-    font-size: 50px;
-    font-weight: 600;
+    font-size: 60px;
+    font-weight: 700;
     margin-bottom: 20px;
     letter-spacing: .03em;
+    color: white;
+    text-shadow: none;
+}
+
+.content h2 .yellow-text {
+    color: #ffd700;
 }
 
 .content p{
-    margin:10px 0 40px;
+    display: block;
+    margin: 10px 0 40px;
+    max-width: 500px;
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: rgba(240, 240, 240, 0.8);
 }
 
 .content a{
@@ -299,6 +324,8 @@ header .logo{
     
     .home .wrapper-login {
         margin-right: 0;
+        margin-left: auto;
+        align-self: flex-end;
     }
 }
 
@@ -700,7 +727,7 @@ html {
     position: relative;
     width: 100%;
     height: 100vh;
-    background-image: url('http://localhost/888/NOTEAI/assets/IMAGES/main.png');
+    background-image: url('../IMAGES/main.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -848,4 +875,13 @@ html {
         width: 100%;
         max-width: 400px;
     }
-} 
+}
+
+.fixed-logo {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    height: 60px;
+    z-index: 1001;
+    transition: all 0.3s ease;
+}

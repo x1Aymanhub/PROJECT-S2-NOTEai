@@ -35,14 +35,14 @@ try {
     <title>Gestion des Étudiants - NOTEAI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="../../assets/css/admin.css" rel="stylesheet">
+    <link href="admin.css" rel="stylesheet">
 </head>
 <body>
     <div class="admin-container">
         <!-- Sidebar -->
         <nav class="sidebar">
             <div class="sidebar-header">
-                <img src="../../assets/images/logo.png" alt="NOTEAI Logo" class="logo">
+                <img src="../../assets/images/logoa.png" alt="NOTEAI Logo" class="logo">
                 <h3>NOTEAI</h3>
             </div>
             <ul class="nav-links">

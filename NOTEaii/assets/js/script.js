@@ -387,3 +387,123 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Custom cursor functionality
+document.addEventListener('DOMContentLoaded', () => {
+    // Create cursor elements
+    const cursorDot = document.createElement('div');
+    const cursorOutline = document.createElement('div');
+    
+    cursorDot.classList.add('cursor-dot');
+    cursorOutline.classList.add('cursor-outline');
+    
+    document.body.appendChild(cursorDot);
+    document.body.appendChild(cursorOutline);
+    
+    let mouseX = 0;
+    let mouseY = 0;
+    let dotX = 0;
+    let dotY = 0;
+    let outlineX = 0;
+    let outlineY = 0;
+    
+    // Mouse move event with smooth animation
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    });
+    
+    // Animation loop for smooth cursor movement
+    function animateCursor() {
+        // Smooth dot movement
+        const dotDx = mouseX - dotX;
+        const dotDy = mouseY - dotY;
+        dotX += dotDx * 0.35;
+        dotY += dotDy * 0.35;
+        
+        // Smooth outline movement with delay
+        const outlineDx = mouseX - outlineX;
+        const outlineDy = mouseY - outlineY;
+        outlineX += outlineDx * 0.12;
+        outlineY += outlineDy * 0.12;
+        
+        // Update positions
+        cursorDot.style.transform = `translate(${dotX}px, ${dotY}px)`;
+        cursorOutline.style.transform = `translate(${outlineX}px, ${outlineY}px)`;
+        
+        requestAnimationFrame(animateCursor);
+    }
+    
+    animateCursor();
+    
+    // Mouse down event
+    document.addEventListener('mousedown', () => {
+        cursorDot.classList.add('active');
+        cursorOutline.classList.add('active');
+    });
+    
+    // Mouse up event
+    document.addEventListener('mouseup', () => {
+        cursorDot.classList.remove('active');
+        cursorOutline.classList.remove('active');
+    });
+    
+    // Mouse leave event
+    document.addEventListener('mouseleave', () => {
+        cursorDot.style.display = 'none';
+        cursorOutline.style.display = 'none';
+    });
+    
+    // Mouse enter event
+    document.addEventListener('mouseenter', () => {
+        cursorDot.style.display = 'block';
+        cursorOutline.style.display = 'block';
+    });
+    
+    // Add hover effect for interactive elements
+    const interactiveElements = document.querySelectorAll('a, button, input, select, .btn');
+    interactiveElements.forEach(element => {
+        element.addEventListener('mouseenter', () => {
+            cursorDot.classList.add('hover');
+            cursorOutline.classList.add('hover');
+        });
+        
+        element.addEventListener('mouseleave', () => {
+            cursorDot.classList.remove('hover');
+            cursorOutline.classList.remove('hover');
+        });
+    });
+
+    // Magnetic effect for buttons
+    const magneticButtons = document.querySelectorAll('.btn');
+    magneticButtons.forEach(button => {
+        button.classList.add('magnetic');
+        
+        button.addEventListener('mousemove', (e) => {
+            const rect = button.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            
+            button.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+        });
+        
+        button.addEventListener('mouseleave', () => {
+            button.style.transform = 'translate(0px, 0px)';
+        });
+    });
+
+    // Add clickable class to interactive elements
+    document.querySelectorAll('a, button, .btn, input[type="submit"]').forEach(element => {
+        element.classList.add('clickable');
+    });
+
+    // Text selection effect
+    document.addEventListener('selectionchange', () => {
+        const selection = window.getSelection();
+        if (selection.toString().length > 0) {
+            cursorOutline.style.transform = `translate(${outlineX}px, ${outlineY}px) scale(1.5)`;
+        } else {
+            cursorOutline.style.transform = `translate(${outlineX}px, ${outlineY}px)`;
+        }
+    });
+});
