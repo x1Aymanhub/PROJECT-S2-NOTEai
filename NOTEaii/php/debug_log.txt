@@ -1,8 +1,8 @@
 Array
 (
-    [nom] => lokak
-    [prenom] => sssss
-    [email] => ssss@gmail.com
-    [password] => sala@@@123
-    [confirm_password] => sala@@@123
+    [nom] => walid
+    [prenom] => aliati
+    [email] => walid@gmail.com
+    [password] => walid123@@
+    [confirm_password] => walid123@@
 )
