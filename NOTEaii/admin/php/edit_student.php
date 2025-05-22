@@ -2,6 +2,15 @@
 session_start();
 require_once '../../config/database.php';
 
+// Set cookies for admin preferences
+if (!isset($_COOKIE['admin_preferences'])) {
+    setcookie('admin_preferences', json_encode([
+        'theme' => 'light',
+        'last_action' => 'edit_student',
+        'timestamp' => time()
+    ]), time() + (86400 * 30), "/"); // 30 days expiry
+}
+
 // Vérifier si l'utilisateur est connecté et est un admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     echo json_encode(['success' => false, 'message' => 'Non autorisé']);
@@ -51,6 +60,13 @@ try {
     $result = $stmt->execute($params);
 
     if ($result) {
+        // Update last action cookie
+        setcookie('admin_preferences', json_encode([
+            'theme' => json_decode($_COOKIE['admin_preferences'] ?? '{"theme":"light"}', true)['theme'] ?? 'light',
+            'last_action' => 'edit_student',
+            'timestamp' => time()
+        ]), time() + (86400 * 30), "/");
+        
         echo json_encode(['success' => true]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Erreur lors de la mise à jour']);

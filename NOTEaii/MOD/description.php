@@ -2,6 +2,17 @@
 session_start();
 require_once '../config/database.php';
 
+// Set cookies for user preferences
+if (!isset($_COOKIE['module_preferences'])) {
+    setcookie('module_preferences', json_encode([
+        'theme' => 'light',
+        'last_action' => 'view_descriptions',
+        'timestamp' => time(),
+        'viewed_descriptions' => [],
+        'edited_descriptions' => []
+    ]), time() + (86400 * 30), "/"); // 30 days expiry
+}
+
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.html");
@@ -57,6 +68,27 @@ try {
     ");
     $stmt_descriptions->execute([$module_id]);
     $descriptions = $stmt_descriptions->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Update cookie with viewed descriptions
+    $preferences = json_decode($_COOKIE['module_preferences'] ?? '{"theme":"light","viewed_descriptions":[]}', true);
+    
+    // Ensure viewed_descriptions is an array
+    if (!isset($preferences['viewed_descriptions']) || !is_array($preferences['viewed_descriptions'])) {
+        $preferences['viewed_descriptions'] = [];
+    }
+    
+    $preferences['last_action'] = 'view_descriptions';
+    $preferences['timestamp'] = time();
+    foreach ($descriptions as $desc) {
+        if (!in_array($desc['id'], $preferences['viewed_descriptions'])) {
+            $preferences['viewed_descriptions'][] = $desc['id'];
+        }
+    }
+    // Keep only last 50 viewed descriptions
+    if (count($preferences['viewed_descriptions']) > 50) {
+        $preferences['viewed_descriptions'] = array_slice($preferences['viewed_descriptions'], -50);
+    }
+    setcookie('module_preferences', json_encode($preferences), time() + (86400 * 30), "/");
     
     // Trier les descriptions par date croissante (ancienne -> récente)
     if (!empty($descriptions)) {

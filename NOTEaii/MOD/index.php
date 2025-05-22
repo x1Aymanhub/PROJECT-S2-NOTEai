@@ -2,6 +2,17 @@
 session_start();
 require_once '../config/database.php';
 
+// Set cookies for user preferences
+if (!isset($_COOKIE['module_preferences'])) {
+    setcookie('module_preferences', json_encode([
+        'theme' => 'light',
+        'last_action' => 'view_modules',
+        'timestamp' => time(),
+        'viewed_modules' => [],
+        'favorite_modules' => []
+    ]), time() + (86400 * 30), "/"); // 30 days expiry
+}
+
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.html");
@@ -24,6 +35,21 @@ try {
     ");
     $stmt_modules->execute([$user_id]);
     $modules = $stmt_modules->fetchAll(PDO::FETCH_ASSOC);
+
+    // Update cookie with viewed modules
+    $preferences = json_decode($_COOKIE['module_preferences'] ?? '{"theme":"light","viewed_modules":[]}', true);
+    $preferences['last_action'] = 'view_modules';
+    $preferences['timestamp'] = time();
+    foreach ($modules as $module) {
+        if (!in_array($module['id'], $preferences['viewed_modules'])) {
+            $preferences['viewed_modules'][] = $module['id'];
+        }
+    }
+    // Keep only last 20 viewed modules
+    if (count($preferences['viewed_modules']) > 20) {
+        $preferences['viewed_modules'] = array_slice($preferences['viewed_modules'], -20);
+    }
+    setcookie('module_preferences', json_encode($preferences), time() + (86400 * 30), "/");
 
 } catch(PDOException $e) {
     $error = $e->getMessage();

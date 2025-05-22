@@ -20,7 +20,7 @@ try {
                 WHERE d.module_id = ? AND EXISTS (
                     SELECT 1 FROM user_modules um WHERE um.user_id = ? AND um.module_id = d.module_id
                 )
-                ORDER BY d.created_at DESC';
+                ORDER BY d.created_at ASC';
         $stmt = $conn->prepare($sql);
         $stmt->execute([$module_id, $user_id]);
     } else {
@@ -29,7 +29,7 @@ try {
                 JOIN modules m ON d.module_id = m.id
                 JOIN user_modules um ON um.module_id = m.id
                 WHERE um.user_id = ?
-                ORDER BY d.created_at DESC';
+                ORDER BY d.created_at ASC';
         $stmt = $conn->prepare($sql);
         $stmt->execute([$user_id]);
     }

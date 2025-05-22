@@ -2,7 +2,10 @@
 session_start();
 require_once 'db.php';
 
+
+
 header('Content-Type: application/json');
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim(strip_tags($_POST['email']));
@@ -52,6 +55,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $_SESSION['role'] = 'student';
         }
+
+        // Check if "Remember me" is set
+        if (isset($_POST['remember_me']) && $_POST['remember_me'] === 'on') {
+            // Set a persistent cookie for remembering the user (e.g., for 30 days)
+            $expiry_time = time() + (86400 * 30); // 30 days
+            $remember_data = json_encode([
+                'user_id' => $user['id'],
+                'email' => $user['email'],
+                'role' => $_SESSION['role']
+            ]);
+            // In a real application, you would encrypt or sign this data
+            setcookie('remember_user', $remember_data, $expiry_time, "/");
+        }
+        
+        // Update cookie with login history
+        $preferences = json_decode($_COOKIE['user_preferences'] ?? '{"theme":"light","login_history":[]}', true);
+        $preferences['last_action'] = 'login';
+        $preferences['timestamp'] = time();
+        $preferences['login_history'][] = [
+            'timestamp' => time(),
+            'user_id' => $user['id'],
+            'email' => $email,
+            'role' => $_SESSION['role']
+        ];
+        // Keep only last 10 logins
+        if (count($preferences['login_history']) > 10) {
+            array_shift($preferences['login_history']);
+        }
+        setcookie('user_preferences', json_encode($preferences), time() + (86400 * 30), "/");
         
         echo json_encode([
             'success' => true,
@@ -72,7 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'message' => 'Méthode non autorisée'
     ]);
 }
-
 // Check if user is logged in
 function isLoggedIn() {
     if (isset($_SESSION['user_id'])) {

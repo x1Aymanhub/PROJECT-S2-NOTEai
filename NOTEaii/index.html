@@ -39,17 +39,17 @@
             <form action="php/auth.php" method="POST">
                 <div class="input-box">
                     <i class='bx bxs-user icon'></i>
-                    <input type="email" name="email" required>
-                    <label>Email</label>
+                    <input type="email" name="email" id="email" required>
+                    <label for="email">Email</label>
                 </div>
                 <div class="input-box">
                     <i class='bx bxs-lock-alt icon'></i>
-                    <input type="password" name="password" required>
-                    <label>Password</label>
+                    <input type="password" name="password" id="password" required>
+                    <label for="password">Password</label>
                 </div>
                 <div class="remember-forgot">
-                    <label><input type="checkbox" name="remember">Remember me</label>
-                    <a href="#">Forgot password?</a>
+                    <label><input type="checkbox" name="remember_me" id="remember_me"> Remember me</label>
+                    <a href="password/forgot_password.php">Forgot password?</a>
                 </div>
                 <button type="submit" class="btn">Login</button>
                 <div class="register-link">

@@ -2,6 +2,16 @@
 session_start();
 require_once 'db.php';
 
+// Set cookies for user preferences
+if (!isset($_COOKIE['user_preferences'])) {
+    setcookie('user_preferences', json_encode([
+        'theme' => 'light',
+        'last_action' => 'register',
+        'timestamp' => time(),
+        'registration_history' => []
+    ]), time() + (86400 * 30), "/"); // 30 days expiry
+}
+
 header('Content-Type: application/json');
 
 // Pour le debug
@@ -46,6 +56,22 @@ try {
         // Insertion de l'utilisateur
         $stmt = $pdo->prepare("INSERT INTO users (nom, prenom, email, password) VALUES (?, ?, ?, ?)");
         if ($stmt->execute([$nom, $prenom, $email, $password])) {
+            // Update cookie with registration history
+            $preferences = json_decode($_COOKIE['user_preferences'] ?? '{"theme":"light","registration_history":[]}', true);
+            $preferences['last_action'] = 'register';
+            $preferences['timestamp'] = time();
+            $preferences['registration_history'][] = [
+                'timestamp' => time(),
+                'email' => $email,
+                'nom' => $nom,
+                'prenom' => $prenom
+            ];
+            // Keep only last 5 registrations
+            if (count($preferences['registration_history']) > 5) {
+                array_shift($preferences['registration_history']);
+            }
+            setcookie('user_preferences', json_encode($preferences), time() + (86400 * 30), "/");
+
             echo json_encode([
                 'success' => true,
                 'message' => 'Inscription réussie ! Vous pouvez maintenant vous connecter.',

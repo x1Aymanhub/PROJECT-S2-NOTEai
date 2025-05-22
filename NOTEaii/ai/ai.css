@@ -790,3 +790,44 @@ h1::after, h2::after {
     margin-right: auto; /* Align received messages to the left */
     border-bottom-left-radius: 5px; /* Adjust corner for tail effect */
 }
+
+.option-correct {
+    background-color: #28a745; /* Vert */
+    color: white;
+}
+
+.option-incorrect {
+    background-color: #dc3545; /* Rouge */
+    color: white;
+}
+
+.option-unselected {
+    background-color: #6c757d; /* Gris */
+    color: white;
+}
+
+.qcm-option.option-correct,
+.qcm-option.option-incorrect,
+.qcm-option.option-unselected {
+    border-radius: 6px;
+    margin-bottom: 6px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    background-clip: padding-box;
+}
+
+.qcm-option.option-correct {
+    background-color: #28a745 !important;
+    color: #fff !important;
+}
+
+.qcm-option.option-incorrect {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+}
+
+.qcm-option.option-unselected {
+    background-color: #6c757d !important;
+    color: #fff !important;
+}

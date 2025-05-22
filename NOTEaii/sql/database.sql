@@ -1,4 +1,3 @@
-
 CREATE DATABASE IF NOT EXISTS noteai_db;
 USE noteai_db;
 
@@ -54,6 +53,16 @@ CREATE TABLE IF NOT EXISTS user_modules (
     UNIQUE KEY unique_user_module (user_id, module_id)
 ) ENGINE=InnoDB;
 
+-- Table pour la réinitialisation des mots de passe
+CREATE TABLE IF NOT EXISTS password_resets (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    code VARCHAR(6) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 
 
 -- Index pour améliorer les performances

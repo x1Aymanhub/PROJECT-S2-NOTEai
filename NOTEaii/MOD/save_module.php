@@ -2,6 +2,16 @@
 session_start();
 require_once '../config/database.php';
 
+// Set cookies for user preferences
+if (!isset($_COOKIE['module_preferences'])) {
+    setcookie('module_preferences', json_encode([
+        'theme' => 'light',
+        'last_action' => 'save_module',
+        'timestamp' => time(),
+        'saved_modules' => []
+    ]), time() + (86400 * 30), "/"); // 30 days expiry
+}
+
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user_id'])) {
     echo json_encode([
@@ -119,6 +129,24 @@ try {
 
     $conn->commit(); // Valider la transaction
     error_log("[save_module.php] Transaction committed successfully for module ID: " . $current_module_id);
+
+    // Update cookie with save history
+    $preferences = json_decode($_COOKIE['module_preferences'] ?? '{"theme":"light","saved_modules":[]}', true);
+    $preferences['last_action'] = 'save_module';
+    $preferences['timestamp'] = time();
+    $preferences['saved_modules'][] = [
+        'timestamp' => time(),
+        'module_id' => $current_module_id,
+        'module_name' => $nom,
+        'semestre' => $semestre,
+        'coefficient' => $coefficient,
+        'descriptions_count' => count($descriptions)
+    ];
+    // Keep only last 20 saves
+    if (count($preferences['saved_modules']) > 20) {
+        array_shift($preferences['saved_modules']);
+    }
+    setcookie('module_preferences', json_encode($preferences), time() + (86400 * 30), "/");
 
     echo json_encode([
         'success' => true,

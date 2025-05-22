@@ -2,6 +2,16 @@
 session_start();
 require_once '../config/database.php';
 
+// Set cookies for user preferences
+if (!isset($_COOKIE['module_preferences'])) {
+    setcookie('module_preferences', json_encode([
+        'theme' => 'light',
+        'last_action' => 'add_module',
+        'timestamp' => time(),
+        'module_history' => []
+    ]), time() + (86400 * 30), "/"); // 30 days expiry
+}
+
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.html");
@@ -58,6 +68,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Valider la transaction
             $conn->commit();
+            
+            // Update cookie with module history
+            $preferences = json_decode($_COOKIE['module_preferences'] ?? '{"theme":"light","module_history":[]}', true);
+            $preferences['last_action'] = 'add_module';
+            $preferences['timestamp'] = time();
+            $preferences['module_history'][] = [
+                'timestamp' => time(),
+                'module_id' => $module_id,
+                'module_name' => $nom,
+                'semestre' => $semestre,
+                'coefficient' => $coefficient
+            ];
+            // Keep only last 20 module creations
+            if (count($preferences['module_history']) > 20) {
+                array_shift($preferences['module_history']);
+            }
+            setcookie('module_preferences', json_encode($preferences), time() + (86400 * 30), "/");
             
             $response['success'] = true;
             $response['message'] = "Le module a été ajouté avec succès.";

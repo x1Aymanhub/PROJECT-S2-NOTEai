@@ -1,8 +1,8 @@
 Array
 (
-    [nom] => walid
-    [prenom] => aliati
-    [email] => walid@gmail.com
-    [password] => walid123@@
-    [confirm_password] => walid123@@
+    [nom] => samii
+    [prenom] => manadich
+    [email] => saadi@gamil.com
+    [password] => sami123@@
+    [confirm_password] => sami123@@
 )

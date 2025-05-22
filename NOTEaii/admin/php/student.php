@@ -2,6 +2,19 @@
 session_start();
 require_once '../../config/database.php';
 
+// Set cookies for admin preferences
+if (!isset($_COOKIE['admin_preferences'])) {
+    setcookie('admin_preferences', json_encode([
+        'theme' => 'light',
+        'last_action' => 'view_students',
+        'timestamp' => time()
+    ]), time() + (86400 * 30), "/"); // 30 days expiry
+}
+
+// Get theme preference
+$preferences = json_decode($_COOKIE['admin_preferences'] ?? '{"theme":"light"}', true);
+$theme = $preferences['theme'] ?? 'light';
+
 // Vérifier si l'utilisateur est connecté et est un admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: ../../index.html');
@@ -36,6 +49,12 @@ try {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="admin.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: <?php echo $theme === 'dark' ? '#1a1a1a' : '#ffffff'; ?>;
+            color: <?php echo $theme === 'dark' ? '#ffffff' : '#000000'; ?>;
+        }
+    </style>
 </head>
 <body>
     <div class="admin-container">
@@ -212,6 +231,25 @@ try {
     <script src="../../assets/js/students.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Theme toggle functionality
+        const themeToggle = document.createElement('button');
+        themeToggle.className = 'btn btn-outline-secondary position-fixed bottom-0 end-0 m-3';
+        themeToggle.innerHTML = '<i class="fas fa-' + (<?php echo json_encode($theme); ?> === 'dark' ? 'sun' : 'moon') + '"></i>';
+        document.body.appendChild(themeToggle);
+
+        themeToggle.addEventListener('click', function() {
+            const currentTheme = <?php echo json_encode($theme); ?>;
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            // Update cookie
+            const preferences = JSON.parse(document.cookie.split('admin_preferences=')[1] || '{"theme":"light"}');
+            preferences.theme = newTheme;
+            document.cookie = 'admin_preferences=' + JSON.stringify(preferences) + ';path=/;max-age=' + (86400 * 30);
+            
+            // Reload page to apply new theme
+            location.reload();
+        });
+
         const searchInput = document.getElementById('searchStudent');
         if (!searchInput) return;
         searchInput.addEventListener('input', function() {
